@@ -58,6 +58,7 @@ function NovaEncomenda() {
   const [showRemetenteForm, setShowRemetenteForm] = useState(false);
   const [showDestinatarioForm, setShowDestinatarioForm] = useState(false);
   const [valorDeclaradoPacote, setValorDeclaradoPacote] = useState("");
+  const [taxaSeguro, setTaxaSeguro] = useState<number>(0);
 
   const [endereco, setEndereco] = useState({
     rua: "",
@@ -77,19 +78,22 @@ function NovaEncomenda() {
   useEffect(() => {
     clienteService.listar().then(setClientes);
 
-    configService
-      .carregar()
-      .then((conf) => setPrecoPorQuilo(conf.precoPorQuilo));
+    configService.carregar().then((conf) => {
+      setPrecoPorQuilo(conf.precoPorQuilo);
+      setTaxaSeguro(conf.taxaPorSeguro);
+    });
   }, []);
 
   const adicionarPacote = () => {
     if (!descricaoPacote || !pesoPacote) return;
 
     const peso = parseFloat(pesoPacote);
-    const valorCalculado = peso * precoPorQuilo;
     const declarado = valorDeclaradoPacote
       ? parseFloat(valorDeclaradoPacote)
-      : undefined;
+      : 0;
+    const valorCalculado = peso * precoPorQuilo;
+    const valorSeguro = declarado * (taxaSeguro / 100);
+    const valorTotal = valorCalculado + valorSeguro;
 
     const novo: Pacote = {
       id: Date.now(),
@@ -98,6 +102,7 @@ function NovaEncomenda() {
       status: statusPacote,
       valorCalculado,
       valorDeclarado: declarado,
+      valorTotal,
     };
 
     setPacotes([...pacotes, novo]);
@@ -111,7 +116,7 @@ function NovaEncomenda() {
     if (!remetenteId || !destinatarioId || pacotes.length === 0) return;
 
     const valorTotal = pacotes.reduce(
-      (soma, p) => soma + (p.valorCalculado || 0),
+      (soma, p) => soma + (p.valorTotal || 0),
       0
     );
 
@@ -173,7 +178,10 @@ function NovaEncomenda() {
         ☰ Menu
       </button>
 
-      <Sidebar mobileAberta={sidebarAberta} onFechar={() => setSidebarAberta(false)} />
+      <Sidebar
+        mobileAberta={sidebarAberta}
+        onFechar={() => setSidebarAberta(false)}
+      />
 
       <main className="flex-1 p-6 space-y-6">
         <h1 className="text-2xl font-bold">Encomendas</h1>
@@ -370,12 +378,17 @@ function NovaEncomenda() {
                     <p>
                       <strong>{p.descricao}</strong> - {p.peso}kg ({p.status})
                       <br />
-                      💰 Custo: R$ {p.valorCalculado.toFixed(2)}{" "}
-                      {p.valorDeclarado && (
-                        <span className="ml-2">
-                          🛡️ Seguro: R$ {p.valorDeclarado.toFixed(2)}
-                        </span>
-                      )}
+                      💰 Custo: R$ {p.valorCalculado.toFixed(2)}
+                      {p.valorDeclarado !== undefined &&
+                        p.valorDeclarado > 0 && (
+                          <span className="ml-2">
+                            🛡️ Seguro: R${" "}
+                            {(p.valorDeclarado * (taxaSeguro / 100)).toFixed(2)}
+                          </span>
+                        )}
+                      <p className="text-sm text-gray-600">
+                        Total do pacote: R$ {p.valorTotal?.toFixed(2)}
+                      </p>
                     </p>
                   </li>
                 ))}
@@ -401,7 +414,7 @@ function NovaEncomenda() {
 
         <button
           onClick={salvarEncomenda}
-          className="mt-4 px-4 py-2 bg-black text-white rounded hover:opacity-80"
+          className="mt-4 px-4 py-2 bg-black text-white rounded hover:opacity-80 mr-2"
         >
           Salvar Encomenda
         </button>

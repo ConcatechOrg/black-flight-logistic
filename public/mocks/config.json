@@ -1,4 +1,5 @@
 {
-    "precoPorQuilo": 75.0
+    "precoPorQuilo": 75.0,
+    "taxaPorSeguro" :15.0
   }
   

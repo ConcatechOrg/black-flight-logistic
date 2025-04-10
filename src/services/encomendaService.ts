@@ -9,6 +9,7 @@ export type Pacote = {
   status: PacoteStatus;
   valorCalculado: number;
   valorDeclarado?: number;
+  valorTotal?: number;
 };
 
 export type Encomenda = {

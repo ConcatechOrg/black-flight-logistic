@@ -4,6 +4,7 @@ import { configService } from "../../services/configService";
 
 const Configuracoes = () => {
   const [precoPorQuilo, setPrecoPorQuilo] = useState<number>(0);
+  const [precoSeguro, setPrecoSeguro] = useState<number>(0);
   const [carregado, setCarregado] = useState(false);
   const [mensagem, setMensagem] = useState("");
   const [sidebarAberta, setSidebarAberta] = useState(false);
@@ -11,12 +12,13 @@ const Configuracoes = () => {
   useEffect(() => {
     configService.carregar().then((config) => {
       setPrecoPorQuilo(config.precoPorQuilo);
+      setPrecoSeguro(config.taxaPorSeguro);
       setCarregado(true);
     });
   }, []);
 
   const salvar = async () => {
-    await configService.atualizar({ precoPorQuilo });
+    await configService.atualizar({ precoPorQuilo, taxaPorSeguro: precoSeguro });
     setMensagem("Valor atualizado com sucesso!");
     setTimeout(() => setMensagem(""), 3000);
   };
@@ -46,6 +48,14 @@ const Configuracoes = () => {
             step="0.01"
             value={precoPorQuilo}
             onChange={(e) => setPrecoPorQuilo(parseFloat(e.target.value))}
+            className="p-2 border rounded w-full"
+          />
+          <label className="block text-sm font-medium">% de valor do Seguro</label>
+          <input
+            type="number"
+            step="0.01"
+            value={precoSeguro}
+            onChange={(e) => setPrecoSeguro(parseFloat(e.target.value))}
             className="p-2 border rounded w-full"
           />
         </div>

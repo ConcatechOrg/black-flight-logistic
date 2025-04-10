@@ -1,5 +1,6 @@
 type ConfiguracaoSistema = {
     precoPorQuilo: number;
+    taxaPorSeguro: number;
   };
   
   let config: ConfiguracaoSistema | null = null;
