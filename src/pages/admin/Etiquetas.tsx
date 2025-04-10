@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate,useLocation } from "react-router-dom";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import Sidebar from "../../components/admin/Sidebar";
@@ -17,6 +17,11 @@ function EtiquetaEncomenda() {
   const dataGeracao = new Date().toLocaleString();
   const [sidebarAberta, setSidebarAberta] = useState(false);
   const pdfRef = useRef<HTMLDivElement | null>(null);
+  const location = useLocation();
+const pacotesSelecionados: number[] = location.state?.pacotesSelecionados ?? [];
+const pacotesParaImprimir = encomenda?.pacotes.filter(p =>
+  pacotesSelecionados.includes(p.id)
+);
 
   useEffect(() => {
     if (!id) return;
@@ -104,14 +109,14 @@ function EtiquetaEncomenda() {
           </section>
 
           {/* QR dos pacotes */}
-          {encomenda.pacotes.length > 0 && (
+          {(pacotesParaImprimir ?? []).length > 0 && (
             <section className="border p-4 rounded bg-white shadow print:break-before-page">
               <h2 className="text-lg font-semibold mb-4">Códigos dos Pacotes</h2>
               <div className="grid md:grid-cols-2 gap-6">
-                {encomenda.pacotes.map((pacote) => (
+                {pacotesParaImprimir?.map((pacote) => (
                   <div
                     key={pacote.id}
-                    className="border p-4 rounded bg-gray-50 shadow flex flex-col items-start"
+                    className="border p-4 rounded bg-gray-50  flex flex-col items-center"
                   >
                     <QRCodeComLogo value={`P-${pacote.id}`} size={128} />
                     <p className="mt-2 text-sm">
